@@ -1,4 +1,25 @@
 from models import db, Label
+from sqlalchemy import text
+
+def insert_label_in_dao(name, country):
+    """Параметризована вставка для таблиці 'Label'."""
+    try:
+        sql = text("""
+            INSERT INTO Label (name, country)
+            VALUES (:name, :country)
+        """)
+
+        # Виконання параметризованого SQL-запиту
+        db.session.execute(sql, {
+            'name': name,
+            'country': country
+        })
+
+        db.session.commit()  # Коміт змін у базі даних
+        return {"message": "Label created successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"Failed to insert record: {str(e)}"}
 
 def create_label(name, country):
     """Creates a new label."""

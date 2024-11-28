@@ -1,8 +1,20 @@
 from models import db, AlbumHasSong, Album, Song
+from sqlalchemy.exc import SQLAlchemyError
 
-def add_album_song(album_id, song_id):
-    """Adds a relationship between an album and a song."""
-    album_song = AlbumHasSong(album_id=album_id, song_id=song_id)
+def add_album_song(album_name, song_name):
+    album = Album.query.filter_by(name=album_name).first()
+    if not album:
+        raise SQLAlchemyError(f"Album '{album_name}' does not exist.")
+
+    song = Song.query.filter_by(name=song_name).first()
+    if not song:
+        raise SQLAlchemyError(f"Song '{song_name}' does not exist.")
+
+    existing_association = AlbumHasSong.query.filter_by(album_id=album.id, song_id=song.id).first()
+    if existing_association:
+        raise SQLAlchemyError(f"The album '{album_name}' and song '{song_name}' are already linked.")
+
+    album_song = AlbumHasSong(album_id=album.id, song_id=song.id)
     db.session.add(album_song)
     db.session.commit()
     return album_song
@@ -35,7 +47,6 @@ def delete_album_song(album_id, song_id):
     return False
 
 def get_album_song_associations(album_id=None, song_id=None):
-    """Returns album-song associations with optional filtering by album_id or song_id."""
     query = db.session.query(AlbumHasSong, Album, Song).join(Album, AlbumHasSong.album_id == Album.id).join(Song, AlbumHasSong.song_id == Song.id)
 
     if album_id:
@@ -44,3 +55,4 @@ def get_album_song_associations(album_id=None, song_id=None):
         query = query.filter(AlbumHasSong.song_id == song_id)
 
     return query.all()
+

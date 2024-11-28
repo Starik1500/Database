@@ -1,11 +1,21 @@
 from flask import jsonify, request
 from ..dao.Liked_dao import (
+    insert_liked_in_dao,
     create_liked,
     get_liked_by_id,
     get_all_liked as dao_get_all_liked,
     update_liked,
     delete_liked
 )
+
+def serialize_liked(liked):
+    """Helper function to serialize a liked entry."""
+    return {
+        'id': liked.id,
+        'artist': liked.artist,
+        'album': liked.album,
+        'user_id': liked.user_id
+    }
 
 def get_all_liked():
     """Retrieve all liked entries."""
@@ -34,14 +44,12 @@ def add_liked():
     if not all([artist, album, user_id]):
         return jsonify({'error': 'artist, album, and user_id are required'}), 400
 
-    liked = create_liked(artist, album, user_id)
-    return jsonify({
-        'message': 'Liked entry created successfully',
-        'id': liked.id,
-        'artist': liked.artist,
-        'album': liked.album,
-        'user_id': liked.user_id
-    }), 201
+    result = insert_liked_in_dao(artist, album, user_id)
+
+    if "error" in result:
+        return jsonify(result), 500
+    else:
+        return jsonify(result), 201
 
 def update_liked(liked_id):
     """Update an existing liked entry."""

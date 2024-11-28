@@ -36,3 +36,13 @@ def delete_album(album_id):
         db.session.delete(album)
         db.session.commit()
     return album
+
+def insert_album(name, length, year, artist_id):
+    try:
+        db.session.execute("""
+                CALL InsertIntoAlbum(:name, :length, :year, :artist_id)
+            """, {'name': name, 'length': length, 'year': year, 'artist_id': artist_id})
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e

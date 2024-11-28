@@ -1,6 +1,7 @@
 from flask import jsonify, request
-from models import db, Song
-from ..dao.Album_dao import get_all_albums, get_album_by_id, create_album, update_album, delete_album
+from models import db
+from sqlalchemy import text
+from ..dao.Album_dao import get_all_albums, get_album_by_id, create_album, update_album, delete_album, insert_album
 
 def get_albums():
     albums = get_all_albums()
@@ -46,14 +47,35 @@ def delete_album_route(id):
         return jsonify({'error': 'Album not found'}), 404
 
     try:
-        # Видалення пов’язаних записів перед видаленням альбому
         Song.query.filter_by(album_id=id).delete()
         db.session.commit()
 
-        # Видалення самого альбому
         db.session.delete(album)
         db.session.commit()
         return jsonify({'message': 'Album deleted successfully'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to delete album', 'details': str(e)}), 500
+
+def insert_album_route():
+    data = request.get_json()
+
+    if not all(key in data for key in ("name", "length", "year", "artist_id")):
+        return jsonify({"error": "Missing parameters"}), 400
+
+    name = data['name']
+    length = data['length']
+    year = data['year']
+    artist_id = data['artist_id']
+
+    sql = text("""
+            CALL InsertIntoAlbum(:name, :length, :year, :artist_id)
+        """)
+
+    try:
+        db.session.execute(sql, {'name': name, 'length': length, 'year': year, 'artist_id': artist_id})
+        db.session.commit()
+        return jsonify({"message": "Album inserted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

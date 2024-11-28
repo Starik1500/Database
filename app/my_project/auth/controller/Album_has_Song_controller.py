@@ -1,4 +1,7 @@
 from flask import jsonify, request
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from models import db
 from ..dao.Album_has_Song_dao import (
     add_album_song,
     get_songs_by_album,
@@ -135,3 +138,22 @@ def get_album_song_associations_controller():
             for _, album, song in associations
         ]
         return jsonify(associations_data)
+
+def insert_into_album_has_song():
+    data = request.get_json()
+
+    album_name = data.get('album_name')
+    song_name = data.get('song_name')
+
+    if not album_name or not song_name:
+        return jsonify({"error": "Missing parameters"}), 400
+
+    try:
+        album_song = add_album_song(album_name, song_name)
+        return jsonify({
+            "message": "Song linked to album successfully",
+            "album_id": album_song.album_id,
+            "song_id": album_song.song_id
+        }), 201
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 400

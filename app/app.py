@@ -17,6 +17,9 @@ from my_project.auth.route.Lyrics_route import lyrics_add_routes
 from my_project.auth.route.Song_has_User_playlist_route import song_has_user_playlist_add_routes
 from my_project.auth.route.User_route import user_add_routes
 from my_project.auth.route.User_playlist_route import user_playlist_add_routes
+from my_project.auth.route.Review_route import review_add_routes
+from my_project.auth.route.for_all_route import for_all_add_routes
+from my_project.auth.route.History_of_played_log_route import history_of_played_log_routes
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -37,6 +40,9 @@ lyrics_add_routes(app)
 song_has_user_playlist_add_routes(app)
 user_add_routes(app)
 user_playlist_add_routes(app)
+review_add_routes(app)
+for_all_add_routes(app)
+history_of_played_log_routes(app)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,5 +1,23 @@
 from models import db, UserPlaylist
+from sqlalchemy import text
 
+def insert_playlist_in_dao(name, user_id):
+    try:
+        sql = text("""
+            INSERT INTO User_playlist (name, user_id)
+            VALUES (:name, :user_id)
+        """)
+
+        db.session.execute(sql, {
+            'name': name,
+            'user_id': user_id
+        })
+
+        db.session.commit()
+        return {"message": "Playlist created successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"Failed to insert playlist: {str(e)}"}
 def create_playlist(name, user_id):
     """Creates a new user playlist."""
     playlist = UserPlaylist(name=name, user_id=user_id)

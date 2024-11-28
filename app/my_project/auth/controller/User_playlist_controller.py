@@ -28,7 +28,6 @@ def get_playlist_controller(playlist_id):
     return jsonify({'error': 'Playlist not found'}), 404
 
 def add_playlist():
-    """Add a new playlist."""
     data = request.get_json()
     name = data.get('name')
     user_id = data.get('user_id')
@@ -37,12 +36,10 @@ def add_playlist():
         return jsonify({'error': 'name and user_id are required'}), 400
 
     playlist = create_playlist(name, user_id)
-    return jsonify({
-        'message': 'Playlist created successfully',
-        'id': playlist.id,
-        'name': playlist.name,
-        'user_id': playlist.user_id
-    }), 201
+    if "error" in result:
+        return jsonify(result), 500
+    else:
+        return jsonify(result), 201
 
 def update_playlist_controller(playlist_id):
     """Update an existing playlist."""

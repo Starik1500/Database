@@ -1,4 +1,7 @@
 from flask import jsonify, request
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from models import db
 from ..dao.Artist_has_Song_dao import (
     add_artist_song,
     get_songs_by_artist,
@@ -6,6 +9,29 @@ from ..dao.Artist_has_Song_dao import (
     delete_artist_song,
     get_artist_song_associations
 )
+
+def insert_into_artist_has_song():
+    data = request.get_json()
+
+    if not all(key in data for key in ("artist_name", "song_name")):
+        return jsonify({"error": "Missing parameters"}), 400
+
+    artist_name = data['artist_name']
+    song_name = data['song_name']
+
+    try:
+        artist_song = add_artist_song(artist_name, song_name)
+        return jsonify({
+            "message": "Song linked to artist successfully",
+            "artist_id": artist_song.artist_id,
+            "song_id": artist_song.song_id
+        }), 201
+
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 400
+
+    except Exception as e:
+        return jsonify({"error": "An error occurred while processing the request"}), 500
 
 def get_artist_songs():
     """Retrieve all songs for a specific artist."""
@@ -129,3 +155,25 @@ def get_artist_song_associations_controller():
             for _, artist, song in associations
         ]
         return jsonify(associations_data)
+
+
+def insert_into_artist_has_song():
+    data = request.get_json()
+
+    if not all(key in data for key in ("artist_name", "song_name")):
+        return jsonify({"error": "Missing parameters"}), 400
+
+    artist_name = data['artist_name']
+    song_name = data['song_name']
+
+    sql = text("""
+        CALL InsertIntoArtistHasSong(:artist_name, :song_name)
+    """)
+
+    try:
+        db.session.execute(sql, {'artist_name': artist_name, 'song_name': song_name})
+        db.session.commit()
+        return jsonify({"message": "Song linked to artist successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

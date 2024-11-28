@@ -15,12 +15,12 @@ class Song(db.Model):
 
     currently_playing = db.relationship('CurrentlyPlaying', backref='song', cascade="all, delete", lazy=True)
     playlists = db.relationship('UserPlaylist', secondary='Song_has_User_playlist', back_populates='songs', cascade="all, delete")
-    lyrics = db.relationship('Lyric', backref='song', cascade="all, delete", lazy=True)
+    lyrics = db.relationship('Lyrics', backref='song', cascade="all, delete", lazy=True)
     history = db.relationship('HistoryOfPlayed', secondary='History_of_played_has_Song', back_populates='songs', cascade="all, delete")
     albums = db.relationship('Album', secondary='Album_has_Song', back_populates='songs', cascade="all, delete")
     liked = db.relationship('Liked', secondary='Liked_has_Song', back_populates='songs', cascade="all, delete")
     artists = db.relationship('Artist', secondary='Artist_has_Song', back_populates='songs', cascade="all, delete")
-
+    reviews = db.relationship('Review', backref='song', cascade="all, delete", lazy=True)
 
 class Label(db.Model):
     __tablename__ = 'Label'
@@ -107,14 +107,15 @@ class HistoryOfPlayed(db.Model):
 
     songs = db.relationship('Song', secondary='History_of_played_has_Song', back_populates='history', cascade="all, delete")
 
+    def __repr__(self):
+        return f'<HistoryOfPlayed id={self.id}, date_of_playing={self.date_of_playing}, duration={self.duration}>'
 
-class Lyric(db.Model):
+class Lyrics(db.Model):
     __tablename__ = 'Lyrics'
     id = db.Column(db.Integer, primary_key=True)
     lyric = db.Column(db.Text, nullable=False)
     songwriter = db.Column(db.String(45), nullable=False)
     song_id = db.Column(db.Integer, db.ForeignKey('Song.id'), nullable=False)
-
 
 class ArtistHasSong(db.Model):
     __tablename__ = 'Artist_has_Song'
@@ -144,3 +145,35 @@ class LikedHasSong(db.Model):
     __tablename__ = 'Liked_has_Song'
     liked_id = db.Column(db.Integer, db.ForeignKey('Liked.id', ondelete='CASCADE'), primary_key=True)
     song_id = db.Column(db.Integer, db.ForeignKey('Song.id', ondelete='CASCADE'), primary_key=True)
+
+class Review(db.Model):
+    __tablename__ = 'Review'
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    Song_id = db.Column(db.Integer, nullable=False)
+    User_id = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship('User', backref='reviews', lazy=True)
+
+    def validate_rating(self):
+        if self.rating < 1 or self.rating > 5:
+            raise ValueError("Rating must be between 1 and 5")
+
+    def __repr__(self):
+        return f'<Review {self.id}, Rating: {self.rating}, Song ID: {self.Song_id}, User ID: {self.User_id}>'
+
+class HistoryOfPlayedLog(db.Model):
+    __tablename__ = 'HistoryOfPlayedLog'
+
+    log_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    history_id = db.Column(db.Integer, db.ForeignKey('History_of_played.id'), nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __init__(self, history_id, deleted_at=None):
+        self.history_id = history_id
+        if deleted_at is None:
+            self.deleted_at = datetime.utcnow()
+
+    def __repr__(self):
+        return f'<HistoryOfPlayedLog log_id={self.log_id}, history_id={self.history_id}, deleted_at={self.deleted_at}>'

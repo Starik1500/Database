@@ -1,4 +1,5 @@
 from models import db, Artist
+from sqlalchemy import text
 
 def get_all_artists():
     return Artist.query.all()
@@ -35,3 +36,36 @@ def delete_artist(artist_id):
         db.session.commit()
         return artist
     return None
+
+def insert_noname_into_artist():
+    try:
+        result = db.session.execute(text(f"CALL InsertNonameIntoTable(:table_name)"), {'table_name': 'artist'})
+        db.session.commit()
+
+        return {"message": "Procedure executed for table: artist"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}
+
+def insert_artist(genre, artist_id, in_playlist, label_id, name):
+    try:
+        # Параметризований SQL запит для вставки даних
+        sql = text("""
+                INSERT INTO Artist (genre, id, in_playlist, label_id, name)
+                VALUES (:genre, :id, :in_playlist, :label_id, :name)
+            """)
+
+        # Виконання запиту з передачею параметрів
+        db.session.execute(sql, {
+            'genre': genre,
+            'id': artist_id,
+            'in_playlist': in_playlist,
+            'label_id': label_id,
+            'name': name
+        })
+        db.session.commit()  # Підтверджуємо зміни в базі даних
+        return {"message": "Artist inserted successfully"}
+
+    except Exception as e:
+        db.session.rollback()  # Якщо сталася помилка, скасовуємо зміни
+        return {"error": str(e)}

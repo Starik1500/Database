@@ -1,5 +1,25 @@
 from models import db, HistoryOfPlayed
+from sqlalchemy import text
 
+def insert_history_of_played_in_dao(date_of_playing, duration, user_id):
+    try:
+        sql = text("""
+            INSERT INTO History_of_played (date_of_playing, duration, user_id)
+            VALUES (:date_of_playing, :duration, :user_id)
+        """)
+
+        # Виконання параметризованого SQL-запиту
+        db.session.execute(sql, {
+            'date_of_playing': date_of_playing,
+            'duration': duration,
+            'user_id': user_id
+        })
+
+        db.session.commit()  # Коміт змін у базі даних
+        return {"message": "History of played entry created successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"Failed to insert record: {str(e)}"}
 def create_history_of_played(date_of_playing, duration, user_id):
     """Creates a new history of played entry."""
     history_of_played = HistoryOfPlayed(

@@ -8,7 +8,6 @@ from ..dao.Song_has_User_playlist_dao import (
 )
 
 def get_songs_by_playlist_controller():
-    """Retrieve all songs associated with a specific user playlist."""
     user_playlist_id = request.args.get('user_playlist_id')
     if user_playlist_id:
         songs = get_songs_by_playlist(user_playlist_id)
@@ -17,7 +16,6 @@ def get_songs_by_playlist_controller():
     return jsonify({'error': 'user_playlist_id parameter is required'}), 400
 
 def get_playlists_by_song_controller():
-    """Retrieve all playlists associated with a specific song."""
     song_id = request.args.get('song_id')
     if song_id:
         playlists = get_playlists_by_song(song_id)
@@ -26,7 +24,6 @@ def get_playlists_by_song_controller():
     return jsonify({'error': 'song_id parameter is required'}), 400
 
 def add_song_to_playlist_controller():
-    """Add a new song-playlist association."""
     data = request.get_json()
     song_id = data.get('song_id')
     user_playlist_id = data.get('user_playlist_id')
@@ -42,7 +39,6 @@ def add_song_to_playlist_controller():
     }), 201
 
 def delete_song_from_playlist_controller():
-    """Delete an association between a song and a playlist."""
     data = request.get_json()
     song_id = data.get('song_id')
     user_playlist_id = data.get('user_playlist_id')
@@ -56,7 +52,6 @@ def delete_song_from_playlist_controller():
     return jsonify({'error': 'Song-Playlist association not found'}), 404
 
 def get_song_playlist_associations_controller():
-    """Retrieve song-playlist associations with optional filtering."""
     song_id = request.args.get('song_id', type=int)
     user_playlist_id = request.args.get('user_playlist_id', type=int)
 

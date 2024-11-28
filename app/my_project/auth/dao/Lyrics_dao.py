@@ -1,7 +1,27 @@
-from models import db, Lyric
+from models import db, Lyrics
+from sqlalchemy import text
+
+def insert_lyrics_in_dao(lyric, songwriter, song_id):
+    try:
+        sql = text("""
+            INSERT INTO Lyrics (lyric, songwriter, song_id)
+            VALUES (:lyric, :songwriter, :song_id)
+        """)
+
+        # Виконання параметризованого SQL-запиту
+        db.session.execute(sql, {
+            'lyric': lyric,
+            'songwriter': songwriter,
+            'song_id': song_id
+        })
+
+        db.session.commit()  # Коміт змін у базі даних
+        return {"message": "Lyrics entry created successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"Failed to insert record: {str(e)}"}
 
 def create_lyrics(lyric, songwriter, song_id):
-    """Creates a new lyrics entry."""
     lyrics = Lyrics(lyric=lyric, songwriter=songwriter, song_id=song_id)
     db.session.add(lyrics)
     db.session.commit()
@@ -9,11 +29,11 @@ def create_lyrics(lyric, songwriter, song_id):
 
 def get_lyrics_by_id(lyrics_id):
     """Retrieves a lyrics entry by its ID."""
-    return Lyric.query.get(lyrics_id)
+    return Lyrics.query.get(lyrics_id)
 
 def get_all_lyrics():
     """Returns all lyrics entries."""
-    return Lyric.query.all()
+    return Lyrics.query.all()
 
 def update_lyrics(lyrics_id, lyric, songwriter, song_id):
     """Updates an existing lyrics entry by its ID."""

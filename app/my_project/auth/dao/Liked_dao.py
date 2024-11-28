@@ -1,4 +1,26 @@
 from models import db, Liked
+from sqlalchemy import text
+
+def insert_liked_in_dao(artist, album, user_id):
+    """Параметризована вставка для таблиці 'Liked'."""
+    try:
+        sql = text("""
+            INSERT INTO Liked (artist, album, user_id)
+            VALUES (:artist, :album, :user_id)
+        """)
+
+        # Виконання параметризованого SQL-запиту
+        db.session.execute(sql, {
+            'artist': artist,
+            'album': album,
+            'user_id': user_id
+        })
+
+        db.session.commit()  # Коміт змін у базі даних
+        return {"message": "Liked entry created successfully"}
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"Failed to insert record: {str(e)}"}
 
 def create_liked(artist, album, user_id):
     """Creates a new liked entry."""

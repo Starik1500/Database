@@ -4,8 +4,17 @@ from ..dao.Label_dao import (
     get_label_by_id,
     get_all_labels as dao_get_all_labels,
     update_label,
-    delete_label
+    delete_label,
+    insert_label_in_dao
 )
+
+def serialize_label(label):
+    """Helper function to serialize a label entry."""
+    return {
+        'id': label.id,
+        'name': label.name,
+        'country': label.country
+    }
 
 def get_all_labels():
     """Retrieve all labels."""
@@ -30,13 +39,12 @@ def add_label():
     if not name or not country:
         return jsonify({'error': 'name and country are required'}), 400
 
-    label = create_label(name, country)
-    return jsonify({
-        'message': 'Label created successfully',
-        'id': label.id,
-        'name': label.name,
-        'country': label.country
-    }), 201
+    result = insert_label_in_dao(name, country)
+
+    if "error" in result:
+        return jsonify(result), 500
+    else:
+        return jsonify(result), 201
 
 def update_label(label_id):
     """Update an existing label."""

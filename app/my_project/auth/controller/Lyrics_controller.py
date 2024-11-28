@@ -1,11 +1,21 @@
 from flask import jsonify, request
 from ..dao.Lyrics_dao import (
+    insert_lyrics_in_dao,
     create_lyrics,
     get_lyrics_by_id,
     get_all_lyrics as dao_get_all_lyrics,
     update_lyrics,
     delete_lyrics
 )
+
+def serialize_lyrics(lyrics):
+    """Helper function to serialize a lyrics entry."""
+    return {
+        'id': lyrics.id,
+        'lyric': lyrics.lyric,
+        'songwriter': lyrics.songwriter,
+        'song_id': lyrics.song_id
+    }
 
 def get_all_lyrics():
     """Retrieve all lyrics entries."""
@@ -39,14 +49,11 @@ def add_lyrics():
     if not all([lyric, songwriter, song_id]):
         return jsonify({'error': 'lyric, songwriter, and song_id are required'}), 400
 
-    lyrics = create_lyrics(lyric, songwriter, song_id)
-    return jsonify({
-        'message': 'Lyrics entry created successfully',
-        'id': lyrics.id,
-        'lyric': lyrics.lyric,
-        'songwriter': lyrics.songwriter,
-        'song_id': lyrics.song_id
-    }), 201
+    result = insert_lyrics_in_dao(lyric, songwriter, song_id)
+    if "error" in result:
+        return jsonify(result), 500
+    else:
+        return jsonify(result), 201
 
 def update_lyrics(lyrics_id):
     """Update an existing lyrics entry."""

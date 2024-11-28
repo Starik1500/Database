@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from ..dao.Artist_dao import get_all_artists, get_artist_by_id, create_artist, update_artist, delete_artist
+from ..dao.Artist_dao import get_all_artists, get_artist_by_id, create_artist, update_artist, delete_artist, insert_noname_into_artist, insert_artist
 
 def get_artists():
     artists = get_all_artists()
@@ -44,3 +44,31 @@ def delete_artist_route(artist_id):
     if artist:
         return jsonify({'message': 'Artist deleted successfully'})
     return jsonify({'error': 'Artist not found'}), 404
+
+def insert_noname_into_artist_route():
+    result = insert_noname_into_artist()
+
+    if "error" in result:
+        return jsonify(result), 500
+    return jsonify(result), 200
+
+def insert_artist_route():
+    data = request.get_json()
+    print("Received data:", data)
+
+    if not all(key in data for key in ("genre", "id", "in_playlist", "label_id", "name")):
+        return jsonify({"error": "Missing parameters"}), 400
+
+    result = insert_artist(
+        genre=data['genre'],
+        artist_id=data['id'],
+        in_playlist=data['in_playlist'],
+        label_id=data['label_id'],
+        name=data['name']
+    )
+
+    # Якщо вставка була успішною, повертаємо повідомлення
+    if "error" not in result:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 500
